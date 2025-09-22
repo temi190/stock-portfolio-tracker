@@ -1,7 +1,11 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from portfolio import add_stock, remove_stock, get_portfolio, get_portfolio_value
 
 app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 # GET all portfolio entries
 @app.route('/portfolio', methods=['GET'])

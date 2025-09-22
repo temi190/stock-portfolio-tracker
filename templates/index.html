@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Portfolio Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>📊 My Portfolio</h1>
+
+    <table id="portfolio-table" border="1">
+        <thead>
+            <tr>
+                <th>Ticker</th>
+                <th>Shares</th>
+                <th>Buy Price</th>
+                <th>Current Price</th>
+                <th>Value</th>
+                <th>P/L</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+     <h2>Add Stock</h2>
+    <form id="add-form">
+        <input type="text" id="add-ticker" placeholder="Ticker" required>
+        <input type="number" id="add-shares" placeholder="Shares" required>
+        <input type="number" step="0.01" id="add-price" placeholder="Buy Price" required>
+        <button type="submit">Add</button>
+    </form>
+
+    <h2>Remove Stock</h2>
+    <form id="remove-form">
+        <input type="text" id="remove-ticker" placeholder="Ticker" required>
+        <input type="number" id="remove-shares" placeholder="Shares to remove" required>
+        <button type="submit">Remove</button>
+    </form>
+
+    <h3>Total Portfolio Value: $<span id="total-value">0</span></h3>
+    <h3>Total P/L: $<span id="total-pl">0</span></h3>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
