@@ -1,122 +1,116 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
-  const [portfolio, setPortfolio] = useState([]);
-  const [ticker, setTicker] = useState("");
-  const [shares, setShares] = useState("");
-  const [buyPrice, setBuyPrice] = useState("");
+  const [portfolio, setPortfolio] = useState([
+    { ticker: "AAPL", shares: 10, buyPrice: 160 },
+    { ticker: "MSFT", shares: 9, buyPrice: 300 },
+    { ticker: "TSLA", shares: 4, buyPrice: 250 },
+  ]);
+
+    const [newStock, setNewStock] = useState({ ticker: "", shares: "", buyPrice: "" });
   const [removeTicker, setRemoveTicker] = useState("");
-  const [removeShares, setRemoveShares] = useState("");
 
-  // Fetch portfolio from Flask API
-  const fetchPortfolio = async () => {
-    const res = await fetch("http://127.0.0.1:5000/portfolio");
-    const data = await res.json();
-    setPortfolio(data);
+  // Handle Add Stock
+  const handleAddStock = (e) => {
+    e.preventDefault();
+    if (!newStock.ticker || newStock.shares <= 0 || newStock.buyPrice <= 0) {
+      alert("Please enter valid stock details.");
+      return;
+    }
+    setPortfolio([...portfolio, { ...newStock, shares: Number(newStock.shares), buyPrice: Number(newStock.buyPrice) }]);
+    setNewStock({ ticker: "", shares: "", buyPrice: "" }); // reset form
   };
 
-  // Add stock
-  const handleAdd = async (e) => {
+  // Handle Remove Stock
+  const handleRemoveStock = (e) => {
     e.preventDefault();
-    await fetch("http://127.0.0.1:5000/add", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ticker,
-        shares: parseInt(shares),
-        buy_price: parseFloat(buyPrice),
-      }),
-    });
-    setTicker("");
-    setShares("");
-    setBuyPrice("");
-    fetchPortfolio();
-  };
-
-  // Remove stock
-  const handleRemove = async (e) => {
-    e.preventDefault();
-    await fetch("http://127.0.0.1:5000/remove", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ticker: removeTicker,
-        shares_to_sell: parseInt(removeShares),
-      }),
-    });
+    setPortfolio(portfolio.filter(stock => stock.ticker.toUpperCase() !== removeTicker.toUpperCase()));
     setRemoveTicker("");
-    setRemoveShares("");
-    fetchPortfolio();
   };
-
-  // Initial load
-  useEffect(() => {
-    fetchPortfolio();
-  }, []);
 
   return (
-    <div>
-      <h1>Stock Portfolio Tracker</h1>
+    <div className="container mt-4">
+      <h1 className="text-center mb-4">📈 Stock Portfolio Tracker</h1>
 
-      <h2>Portfolio</h2>
-      <table border="1">
-        <thead>
-          <tr>
-            <th>Ticker</th>
-            <th>Shares</th>
-            <th>Buy Price</th>
-          </tr>
-        </thead>
-        <tbody>
-          {portfolio.map((stock, idx) => (
-            <tr key={idx}>
-              <td>{stock.ticker}</td>
-              <td>{stock.shares}</td>
-              <td>{stock.buy_price}</td>
+      {/* Portfolio Table */}
+      <div className="card shadow-sm p-3 mb-4">
+        <h3>Portfolio</h3>
+        <table className="table table-striped table-hover">
+          <thead className="table-dark">
+            <tr>
+              <th>Ticker</th>
+              <th>Shares</th>
+              <th>Buy Price</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {portfolio.map((stock, index) => (
+              <tr key={index}>
+                <td>{stock.ticker}</td>
+                <td>{stock.shares}</td>
+                <td>${stock.buyPrice}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      <h2>Add Stock</h2>
-      <form onSubmit={handleAdd}>
-        <input
-          type="text"
-          placeholder="Ticker"
-          value={ticker}
-          onChange={(e) => setTicker(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="Shares"
-          value={shares}
-          onChange={(e) => setShares(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="Buy Price"
-          value={buyPrice}
-          onChange={(e) => setBuyPrice(e.target.value)}
-        />
-        <button type="submit">Add</button>
-      </form>
+        {/* Add Stock Form */}
+      <div className="card shadow-sm p-3 mb-4">
+        <h3>Add Stock</h3>
+        <form className="row g-3" onSubmit={handleAddStock}>
+          <div className="col-md-3">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Ticker"
+              value={newStock.ticker}
+              onChange={(e) => setNewStock({ ...newStock, ticker: e.target.value })}
+            />
+          </div>
+          <div className="col-md-3">
+            <input
+              type="number"
+              className="form-control"
+              placeholder="Shares"
+              value={newStock.shares}
+              onChange={(e) => setNewStock({ ...newStock, shares: e.target.value })}
+            />
+          </div>
+          <div className="col-md-3">
+            <input
+              type="number"
+              className="form-control"
+              placeholder="Buy Price"
+              value={newStock.buyPrice}
+              onChange={(e) => setNewStock({ ...newStock, buyPrice: e.target.value })}
+            />
+          </div>
+          <div className="col-md-3">
+            <button className="btn btn-success w-100">Add</button>
+          </div>
+        </form>
+      </div>
 
-      <h2>Remove Stock</h2>
-      <form onSubmit={handleRemove}>
-        <input
-          type="text"
-          placeholder="Ticker"
-          value={removeTicker}
-          onChange={(e) => setRemoveTicker(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="Shares"
-          value={removeShares}
-          onChange={(e) => setRemoveShares(e.target.value)}
-        />
-        <button type="submit">Remove</button>
-      </form>
+      {/* Remove Stock */}
+      <div className="card shadow-sm p-3">
+        <h3>Remove Stock</h3>
+        <form className="row g-3" onSubmit={handleRemoveStock}>
+          <div className="col-md-6">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Ticker"
+              value={removeTicker}
+              onChange={(e) => setRemoveTicker(e.target.value)}
+            />
+          </div>
+          <div className="col-md-6">
+            <button className="btn btn-danger w-100">Remove</button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
