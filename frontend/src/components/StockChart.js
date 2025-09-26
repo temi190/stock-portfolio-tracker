@@ -22,6 +22,11 @@ export default function StockChart({ ticker }) {
     };
 
     fetchData();
+
+     const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+
   }, [ticker]);
 
   if (loading) return <p>Loading chart...</p>;
