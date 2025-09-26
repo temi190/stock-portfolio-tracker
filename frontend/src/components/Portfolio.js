@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import StockChart from "../components/StockChart";
+import StockNews from "../components/StockNews";
 
 function Portfolio({ data }) {
   const [selectedTicker, setSelectedTicker] = useState(null);
@@ -60,6 +61,7 @@ function Portfolio({ data }) {
         <div className="mt-5">
           <h3 className="text-center">{selectedTicker} Price History</h3>
           <StockChart ticker={selectedTicker} />
+          <StockNews ticker={selectedTicker} />
           <div className="text-center mt-3">
             <button
               className="btn btn-secondary"

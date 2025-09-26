@@ -7,6 +7,8 @@ function App() {
     { ticker: "AAPL", shares: 10, buyPrice: 160 },
     { ticker: "MSFT", shares: 9, buyPrice: 300 },
     { ticker: "TSLA", shares: 4, buyPrice: 250 },
+    {"ticker": "AMZN", shares: 6, buyPrice: 140},   // Amazon
+    {"ticker": "GOOGL", shares: 8, buyPrice: 120}   // Alphabet (Google)
   ]);
 
     const [newStock, setNewStock] = useState({ ticker: "", shares: "", buyPrice: "" });

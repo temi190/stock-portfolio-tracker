@@ -2,9 +2,47 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from portfolio import add_stock, remove_stock, get_portfolio, get_portfolio_value
 import yfinance as yf
+import requests
 
 app = Flask(__name__)
 CORS(app)
+
+NEWS_API_KEY = "937d6f23b6e541b8be85410c3195f798"  
+
+@app.route("/news", methods=["GET"])
+def get_news():
+    symbol = request.args.get("ticker")
+    if not symbol:
+        return jsonify({"error": "Ticker is required"}), 400
+
+    url = "https://newsapi.org/v2/everything"
+    params = {
+        "q": symbol,
+        "apiKey": NEWS_API_KEY,
+        "language": "en",
+        "sortBy": "publishedAt",
+        "pageSize": 5
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        data = response.json()
+        if data.get("status") != "ok":
+            return jsonify({"error": "Failed to fetch news"}), 500
+
+        articles = [
+            {
+                "title": article["title"],
+                "url": article["url"],
+                "source": article["source"]["name"],
+                "publishedAt": article["publishedAt"]
+            }
+            for article in data.get("articles", [])
+        ]
+        return jsonify(articles)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 portfolio = [
