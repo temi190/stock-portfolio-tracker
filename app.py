@@ -13,12 +13,17 @@ portfolio = [
     {"ticker": "TSLA", "shares": 4, "buy_price": 250}
 ]
 
-@app.route("/portfolio")
-def get_portfolio():
+@app.route("/portfolio", methods=['GET'])
+def get_portfolio_data():
     data = []
     for stock in portfolio:
         ticker = yf.Ticker(stock["ticker"])
-        current_price = ticker.history(period="1d")["Close"].iloc[-1]
+        # Get latest close price (1d history)
+        history = ticker.history(period="1d")
+        if not history.empty:
+            current_price = history["Close"].iloc[-1]
+        else:
+            current_price = stock["buy_price"]  # fallback
 
         value = stock["shares"] * current_price
         pl = (current_price - stock["buy_price"]) * stock["shares"]
@@ -33,20 +38,23 @@ def get_portfolio():
         })
     return jsonify(data)
 
+@app.route("/price", methods=['GET'])
+def get_price():
+    ticker_symbol = request.args.get("ticker")
+    ticker = yf.Ticker(ticker_symbol)
+    history = ticker.history(period="1mo")
+    chart_data = [
+        {"date": str(date.date()), "price": float(row["Close"])}
+        for date, row in history.iterrows()
+    ]
+    return jsonify(chart_data)
+
+
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# GET all portfolio entries
-@app.route('/portfolio', methods=['GET'])
-def portfolio():
-    data = get_portfolio()
-    result = [
-        {"ticker": t, "shares": s, "buy_price": b, "buy_date": d}
-        for t, s, b, d in data
-    ]
-    return jsonify(result)
 
 # GET total portfolio value and P/L
 @app.route('/value', methods=['GET'])
