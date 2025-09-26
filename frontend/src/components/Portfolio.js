@@ -1,19 +1,14 @@
 import React, { useEffect, useState } from "react";
+import StockChart from "../components/StockChart";
 
-function Portfolio() {
-  const [portfolio, setPortfolio] = useState([]);
+function Portfolio({ data }) {
+  const [selectedTicker, setSelectedTicker] = useState(null);
 
-  useEffect(() => {
-    fetch("http://127.0.0.1:5000/portfolio")
-      .then((res) => res.json())
-      .then((data) => setPortfolio(data))
-      .catch((err) => console.error("Error fetching portfolio:", err));
-  }, []);
 
   return (
     <div className="container mt-4">
       <h2 className="text-center mb-4">📊 My Stock Portfolio</h2>
-      
+
       <table className="table table-striped table-hover table-bordered shadow-sm">
         <thead className="table-primary">
           <tr>
@@ -23,10 +18,11 @@ function Portfolio() {
             <th>Current Price</th>
             <th>Value</th>
             <th>P/L</th>
+            <th>Chart</th>
           </tr>
         </thead>
         <tbody>
-          {portfolio.map((stock, idx) => (
+          {data.map((stock, idx) => (
             <tr key={idx}>
               <td className="fw-bold">{stock.ticker}</td>
               <td>{stock.shares}</td>
@@ -40,17 +36,42 @@ function Portfolio() {
                 {stock.value ? `$${stock.value.toFixed(2)}` : "-"}
               </td>
               <td
-                className={stock.pl >= 0 ? "text-success fw-bold" : "text-danger fw-bold"}
+                className={
+                  stock.pl >= 0 ? "text-success fw-bold" : "text-danger fw-bold"
+                }
               >
                 {stock.pl ? `$${stock.pl.toFixed(2)}` : "-"}
+              </td>
+              <td>
+                <button
+                  className="btn btn-sm btn-primary"
+                  onClick={() => setSelectedTicker(stock.ticker)}
+                >
+                  View Chart
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* Chart Section */}
+      {selectedTicker && (
+        <div className="mt-5">
+          <h3 className="text-center">{selectedTicker} Price History</h3>
+          <StockChart ticker={selectedTicker} />
+          <div className="text-center mt-3">
+            <button
+              className="btn btn-secondary"
+              onClick={() => setSelectedTicker(null)}
+            >
+              Close Chart
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default Portfolio;
-

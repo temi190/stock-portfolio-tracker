@@ -1,9 +1,38 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from portfolio import add_stock, remove_stock, get_portfolio, get_portfolio_value
+import yfinance as yf
 
 app = Flask(__name__)
 CORS(app)
+
+
+portfolio = [
+    {"ticker": "AAPL", "shares": 10, "buy_price": 160},
+    {"ticker": "MSFT", "shares": 9, "buy_price": 300},
+    {"ticker": "TSLA", "shares": 4, "buy_price": 250}
+]
+
+@app.route("/portfolio")
+def get_portfolio():
+    data = []
+    for stock in portfolio:
+        ticker = yf.Ticker(stock["ticker"])
+        current_price = ticker.history(period="1d")["Close"].iloc[-1]
+
+        value = stock["shares"] * current_price
+        pl = (current_price - stock["buy_price"]) * stock["shares"]
+
+        data.append({
+            "ticker": stock["ticker"],
+            "shares": stock["shares"],
+            "buy_price": stock["buy_price"],
+            "current_price": float(current_price),
+            "value": float(value),
+            "pl": float(pl)
+        })
+    return jsonify(data)
+
 
 @app.route('/')
 def home():

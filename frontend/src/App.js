@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Portfolio from "./components/Portfolio.js";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
@@ -32,6 +33,9 @@ function App() {
   return (
     <div className="container mt-4">
       <h1 className="text-center mb-4">📈 Stock Portfolio Tracker</h1>
+
+      {/* Portfolio Component for charts */}
+      <Portfolio data={portfolio} />
 
       {/* Portfolio Table */}
       <div className="card shadow-sm p-3 mb-4">
