@@ -3,9 +3,60 @@ from flask_cors import CORS
 from portfolio import add_stock, remove_stock, get_portfolio, get_portfolio_value
 import yfinance as yf
 import requests
+from flask_bcrypt import Bcrypt
+import hashlib
+import secrets
 
 app = Flask(__name__)
 CORS(app)
+
+
+bcrypt = Bcrypt(app)
+
+users = {}  # { username: { "password": hashed_password } }
+sessions = {}  # { token: username }
+
+# Utility: hash password
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify({"error": "Username and password required"}), 400
+
+    if username in users:
+        return jsonify({"error": "User already exists"}), 400
+
+    users[username] = {"password": hash_password(password)}
+    return jsonify({"message": f"User {username} registered successfully"}), 201
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+
+    if username not in users:
+        return jsonify({"error": "User not found"}), 404
+
+    hashed = hash_password(password)
+    if users[username]["password"] != hashed:
+        return jsonify({"error": "Invalid password"}), 401
+
+    # Generate session token
+    token = secrets.token_hex(16)
+    sessions[token] = username
+
+    return jsonify({"message": "Login successful", "token": token})
+
+
 
 NEWS_API_KEY = "937d6f23b6e541b8be85410c3195f798"  
 
@@ -76,6 +127,7 @@ def get_portfolio_data():
         })
     return jsonify(data)
 
+
 @app.route("/price", methods=['GET'])
 def get_price():
     ticker_symbol = request.args.get("ticker")
@@ -108,10 +160,20 @@ def portfolio_value():
 @app.route('/add', methods=['POST'])
 def add():
     data = request.get_json()
-    ticker = data.get("ticker")
+    ticker = data.get("ticker").upper()
     shares = data.get("shares")
     buy_price = data.get("buy_price")
-    add_stock(ticker, shares, buy_price)
+    
+    # Validate ticker
+    stock = yf.Ticker(ticker)
+    if stock.history(period="1d").empty:
+        return jsonify({"error": "Invalid ticker"}), 400
+
+    portfolio.append({
+        "ticker": ticker,
+        "shares": shares,
+        "buy_price": buy_price
+    })
     return jsonify({"message": f"{shares} shares of {ticker} added."})
 
 # POST to remove stock
@@ -122,6 +184,28 @@ def remove():
     shares_to_sell = data.get("shares_to_sell")  # optional
     remove_stock(ticker, shares_to_sell)
     return jsonify({"message": f"{ticker} updated/removed."})
+
+@app.route("/compare", methods=["POST"])
+def compare():
+    data = request.json
+    tickers = data.get("tickers", [])
+    mode = data.get("mode", "normalised")  # "normalised" or "raw"
+    
+    result = {}
+    for ticker in tickers:
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="6mo")
+        closes = hist["Close"].tolist()
+        dates = hist.index.strftime("%Y-%m-%d").tolist()
+
+        if mode == "normalised":
+            base = closes[0] if closes else 1
+            closes = [(c / base) * 100 for c in closes]
+
+        result[ticker] = closes
+        result[f"{ticker}_dates"] = dates
+
+    return jsonify(result)
 
 # Run the Flask app
 if __name__ == "__main__":
