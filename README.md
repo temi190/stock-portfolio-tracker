@@ -41,8 +41,8 @@ A dynamic web application to manage and track your stock portfolio with live dat
 
 ## How to Run
 1. Clone repo: git clone 'https://github.com/temi190/stock-portfolio-tracker.git'
-2. Install backend dependencies: 'pip install -r requirements.txt`
-3. Install frontend dependencies: cd frontend,  npm install
+2. Install backend dependencies: `pip install -r requirements.txt`
+3. Install frontend dependencies: `cd frontend`,  `npm install`
 4. Run the backend server, Flask app: `python backend/app.py`
-5. Run the frontend: npm start
+5. Run the frontend: `npm start`
 6. Access the app: Open your browser and go to http://localhost:3000
